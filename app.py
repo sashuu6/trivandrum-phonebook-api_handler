@@ -1,5 +1,5 @@
 """
- * Library name: Flask App
+ * Library name: App management API
  * File name : app.py
  * Author : Sashwat K
  * Last updated : 13 May 2020
