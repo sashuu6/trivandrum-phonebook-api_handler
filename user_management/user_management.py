@@ -1,4 +1,5 @@
 import pymysql
+import sys
 
 
 class userManagement:
@@ -11,21 +12,22 @@ class userManagement:
 
             # Definition to check if user exists or not
             def userChecker():
-                if username == "admin" and password == "admin":
-                    return 1
+                checkUserCredQuery = """SELECT `secret` FROM `users` WHERE `email` = %s AND `password` = %s"""
+                checkUserValue = (username, password)
+                flag = cursor.execute(checkUserCredQuery, checkUserValue)
+
+                if flag == 1:
+                    result = cursor.fetchone()
+                    return result[0]
                 else:
                     return 0
-
-            # defintion to get API key of authenticated user
-            def apiKey(id):
-                return id
 
             # definition statements
             value = userChecker()
             if value != 0:
-                return apiKey(value)
+                return value
             else:
-                return "Invalid username or password"
+                return 0
 
         except pymysql.Error as error:
             connection.rollback()
@@ -38,7 +40,7 @@ class userManagement:
             cursor.close()
             connection.close()
 
-    def __init__(self, hostName, databaseName, databaseUserName, databasePassWord):
+    def __init__(self, hostName, databaseName, databaseUserName, databasePassWord, theReceivedToken):
         self.serverHostName = hostName
         self.serverDatabaseName = databaseName
         self.serverDatabaseUsername = databaseUserName

@@ -11,9 +11,10 @@ import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 import os
-
 from configparser import ConfigParser  # Library for importing .ini file
+from user_management import user_management  # User management
 
+# Initialise Flask
 app = Flask(__name__)
 filesLocation = "/tmp"
 
@@ -33,7 +34,7 @@ logLocation = "logs/log.txt"
 
 # Definition to return json output
 def jsonOutputer(code, res):
-    return jsonify({"errorCode": code, "result": res})
+    return jsonify({"status": code, "result": res})
 
 
 # Definition to log requests
@@ -51,17 +52,25 @@ def userLogin():
         token = request.headers.get("special_key")
         userName = request.form["user_name"]  # username sent via request
         password = request.form["user_password"]  # password sent via request
-        theLogger("INFO", "Paramaters met")
-        return jsonOutputer(200, "Parameters met")
+
+        userManagement = user_management.userManagement(
+            hostName, databaseName, databaseUsername, databasePassword, token)
+
+        result = userManagement.userLogin(userName, password)
+
+        if not result:
+            theLogger("INFO", "Incorrect username or password")
+        return jsonOutputer(True if result else False, result)
     else:
         theLogger("ERROR", "Invalid method or missing headers")
-        return jsonOutputer(404, "Parameters not met")
+        return jsonOutputer(False, "Parameters not met")
 
 
+# Definition to handle error
 @app.errorhandler(404)
 def invalid_route(e):
     theLogger("ERROR", "Invalid parameters, accessed invalid URL")
-    return jsonOutputer(404, "Invalid parameters")
+    return jsonOutputer(False, "Invalid parameters")
 
 
 def main():
